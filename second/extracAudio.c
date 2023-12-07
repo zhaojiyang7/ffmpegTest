@@ -2,7 +2,7 @@
 #include <libavutil/log.h>
 #include <libavutil/avutil.h>
 #include <libavformat/avformat.h>
-
+#include <libavcodec/avcodec.h>
 int main(int argc, char* argv[]){
     int ret = -1;
     int index = 0;
@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
     char* dst;
     AVFormatContext *pFmtCtx=NULL;
     AVFormatContext *oFmtCtx=NULL;
-    AVOutputFormat *outFmt = NULL;
+    const AVOutputFormat *outFmt = NULL;
     AVStream *outStream = NULL;
     AVStream *inStream = NULL;
     AVPacket pkt;
@@ -29,7 +29,8 @@ int main(int argc, char* argv[]){
         exit(-1);
     }
     // 3 从多媒体文件中找到音频流
-    if(index = av_find_best_stream(pFmtCtx,AVMEDIA_TYPE_AUDIO,-1,-1,NULL,0)<0){
+    index = av_find_best_stream(pFmtCtx,AVMEDIA_TYPE_AUDIO,-1,-1,NULL,0);
+    if(index <0){
         av_log(pFmtCtx,AV_LOG_ERROR,"does not include audio\n");
         goto _ERROR;
     }
@@ -55,10 +56,10 @@ int main(int argc, char* argv[]){
         goto _ERROR;
     }
     // 7 给目的文件写文件头
-    avformat_write_header(oFmtCtx,NULL);
+    ret = avformat_write_header(oFmtCtx,NULL);
     // 8 从源媒体读出来音频数据写入目的文件
     while(av_read_frame(pFmtCtx,&pkt)>=0){
-        if(pkt.stream_index = index){
+        if(pkt.stream_index == index){
             pkt.pts = av_rescale_q_rnd(pkt.pts,inStream->time_base, outStream->time_base, (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
             pkt.dts = pkt.pts;
             pkt.duration = av_rescale_q(pkt.duration,inStream->time_base,outStream->time_base);
@@ -83,5 +84,6 @@ _ERROR:
         avformat_free_context(oFmtCtx);
         oFmtCtx = NULL;
     }
+    printf("nihao");
     return 0;
 }

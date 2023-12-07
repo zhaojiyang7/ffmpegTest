@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "avcodec.h": "c",
+        "log.h": "c"
+    }
+}
